@@ -1,0 +1,104 @@
+<!-- templates/your_app/city_list.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>City List</title>
+</head>
+<body>
+    <form method="get">
+        {{ form.date_range }}
+        <div id="custom-date-fields" style="display:none;">
+            {{ form.start_date }}
+            {{ form.end_date }}
+        </div>
+        <button type="submit" onclick="return validateCustomDateRange()">Filter</button>
+    </form>
+
+    <p>
+        {% if start_date and end_date %}
+            Start Date: {{ start_date }} | End Date: {{ end_date }}
+        {% elif past_15_days %}
+            Start Date: {{ past_15_days.0 }} | End Date: {{ past_15_days.1 }}
+        {% elif last_month %}
+            Start Date: {{ last_month.0 }} | End Date: {{ last_month.1 }}
+        {% endif %}
+    </p>
+
+    <div id="error-message" style="color: red;"></div>
+
+    <!-- Table is initially visible -->
+    <table id="city-table">
+        <thead>
+            <tr>
+                <th>Table1 Name</th>
+                <th>Status</th>
+                <th>Reason</th>
+                <th>Data Scraped</th>
+                <th>Scraped On</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Loop through your data and display rows -->
+            {% for item in data %}
+                <tr>
+                    <td style="color:{{ entry.status_color }}">{{ item.table_name }}</td>
+                    <td style="color:{{ entry.status_color }}">{{ item.status }}</td>
+                    <td style="color:{{ entry.status_color }}">{{ item.data_scraped }}</td>
+                    <td>{{ item.reason }}</td>
+                    <td>{{ item.scraped_at }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var customDateFields = document.getElementById('custom-date-fields');
+            var dateRangeDropdown = document.getElementsByName('date_range')[0];
+            var errorMessage = document.getElementById('error-message');
+
+            // Initial check to show/hide custom date fields
+            toggleCustomDateFields();
+
+            // Add event listener to the date range dropdown
+            dateRangeDropdown.addEventListener('change', toggleCustomDateFields);
+
+            function toggleCustomDateFields() {
+                if (dateRangeDropdown.value === 'custom') {
+                    customDateFields.style.display = 'block';
+                    // Hide the table for the custom option until validated
+                    document.getElementById('city-table').style.display = 'table';
+                } else {
+                    customDateFields.style.display = 'none';
+                    // Show the table for other options
+                    document.getElementById('city-table').style.display = 'table';
+                }
+            }
+
+            // Function to validate custom date range before submitting
+            window.validateCustomDateRange = function() {
+                if (dateRangeDropdown.value === 'custom') {
+                    var startDate = new Date(document.getElementsByName('start_date')[0].value);
+                    var endDate = new Date(document.getElementsByName('end_date')[0].value);
+
+                    // Check if the date range exceeds 60 days
+                    var sixtyDaysLater = new Date(startDate.getTime() + 60 * 24 * 60 * 60 * 1000);
+                    if (endDate > sixtyDaysLater) {
+                        errorMessage.textContent = 'Date range for custom option cannot exceed 60 days.';
+                        return false;
+                    }
+
+                    // Hide the error message and display the table
+                    errorMessage.textContent = '';
+                    document.getElementById('city-table').style.display = 'table';
+                }
+
+                return true;
+            };
+        });
+    </script>
+</body>
+</html>
